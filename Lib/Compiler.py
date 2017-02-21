@@ -15,9 +15,22 @@ class Compiler(object):
 
   def __init__( self ):
     self.__extVersion = SessionData.getExtJSVersion()
-    self.__staticPaths = HandlerMgr().getPaths( "static" )
-    self.__extensions = getInstalledExtensions()
+    self.__staticPaths = []
+    for ext in HandlerMgr().getPaths( "static" ):
+      print "ext"
+      print ext
+      if "EiscatWeb" in ext:
+        continue
+      self.__staticPaths.append( ext )
+    self.__extensions = []
+    for ext in getInstalledExtensions():
+      if ext == "EiscatWeb":
+        continue
+      self.__extensions.append( ext )
+
     self.__webAppPath = os.path.dirname( self.__staticPaths[-1] )
+    print "self.__webAppPath"
+    print self.__webAppPath
     self.__extPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion )
     self.__sdkPath = os.path.join( self.__webAppPath, "static", "extjs", self.__extVersion, "src" )
     self.__appDependency = CompilerHelper().getAppDependencies()
@@ -88,7 +101,9 @@ class Compiler(object):
     classPath.append( os.path.join( extPath, appName, "classes" ) )
     
     cmd = [ 'sencha', '-sdk', self.__sdkPath, 'compile', '-classpath=%s' % ",".join( classPath ),
-           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and','restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and','concat','-yui',compressedJsFile]
+           '-debug=%s' % self.__debugFlag, 'page', '-name=page','-in',inFile, '-out', outFile,'and',
+            'restore','page','and','exclude','-not','-namespace','Ext.dirac.*%s' % excludePackage,'and',
+            'concat','-yui',compressedJsFile]
 
     if self.__cmd( cmd ):
       return S_ERROR( "Error compiling %s.%s" % ( extName, appName ) )
@@ -129,6 +144,7 @@ class Compiler(object):
     
     staticPath = os.path.join( self.__webAppPath, "static" )
     gLogger.notice( "Compiling core" )
+    gLogger.notice( "staticPath: %s" % staticPath )
     
     result = self.__writeINFile( "core.tpl" )
     if not result[ 'OK' ]:
@@ -196,7 +212,6 @@ class Compiler(object):
       depPath = dependency.split(".")
       for staticPath in self.__staticPaths:
         expectedJS = os.path.join(staticPath, depPath[0], depPath[1], "classes" )
-        print expectedJS
         if not os.path.isdir( expectedJS ):
             continue
         classPath = expectedJS

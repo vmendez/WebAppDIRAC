@@ -212,8 +212,12 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         me.diffValues = {};
         me.dataStore = Ext.create("Ext.dirac.utils.DiracJsonStore", {
               proxy : oProxy,
+              autoLoad : true,
+              groupDir : 'DESC',
               fields : me.dataFields,
+              remoteSort : false,
               groupField : 'TransformationFamily',
+              multiSortLimit : 1,
               oDiffFields : {
                 'Id' : 'TransformationID',
                 'Fields' : ['Jobs_Created', 'Jobs_TotalCreated', 'Jobs_Done', 'Jobs_Failed', 'Jobs_Running', 'Jobs_Stalled', 'Jobs_Submitted', 'Jobs_Waiting', 'Jobs_Completed', 'Files_PercentProcessed', 'Files_Total', 'Files_Unused', 'Files_Assigned', 'Files_Processed',
@@ -221,7 +225,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               },
               scope : me
             });
-
+        me.dataStore.sort('TransformationGroup','DESC');
         var pagingToolbar = null;
 
         var toolButtons = {
@@ -609,14 +613,6 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                 }
               }, {
                 "text" : "-"
-              }, // menu separator
-              {
-                "text" : "Show Reques",
-                "handler" : me.__oprGetJobData,
-                "arguments" : ["request"],
-                "properties" : {
-                  tooltip : 'Click to show the request.'
-                }
               }, {
                 "text" : "Logging Info",
                 "handler" : me.__oprGetJobData,
@@ -915,6 +911,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var me = this;
         var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "RunNumber");
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
+        
+        var appName = me.parent.applicationName;
 
         var title = 'Flush ' + oRunNumberId;
         var msg = 'Are you sure you want to flush this run: ' + oRunNumberId + ' ?';
@@ -939,7 +937,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + me.applicationName + "/setRunStatus"
+                      url : GLOBAL.BASE_URL + appName + "/setRunStatus"
                     });
               }
             });
@@ -949,6 +947,8 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
         var oRunNumberId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(me, "RunNumber");
         var oTransFormationId = GLOBAL.APP.CF.getFieldValueFromSelectedRow(parentGrid, "TransformationID");
 
+        var appName = me.parent.applicationName;
+        
         var title = 'Set Site ' + site;
         var msg = 'Are you sure you want to set site ' + site + ' for the run ' + oRunNumberId + ' in production ' + oTransFormationId + ' ?';
         Ext.Msg.confirm(title, msg, function(btn) {
@@ -972,7 +972,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
                           alert(response["error"]);
                         }
                       },
-                      url : GLOBAL.BASE_URL + me.applicationName + "/setSite"
+                      url : GLOBAL.BASE_URL + appName + "/setSite"
                     });
               }
             });
@@ -1038,6 +1038,7 @@ Ext.define('DIRAC.TransformationMonitor.classes.TransformationMonitor', {
               url : url,
               params : params,
               menu : null,
+              parent : me,
               selType : 'cellmodel'
             });
 

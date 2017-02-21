@@ -1,9 +1,8 @@
 
 import imp
 import os
-from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.CFG import CFG
-from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 
 BASECS = "WebApp"
@@ -16,12 +15,16 @@ def loadWebAppCFGFiles():
   for ext in CSGlobals.getCSExtensions():
     if ext == "DIRAC":
       continue
+    if ext == "EiscatWeb":
+      continue
     if ext[-5:] != "DIRAC":
       ext = "%sDIRAC" % ext
     if ext != "WebAppDIRAC":
       exts.append( ext )
   exts.append( "DIRAC" )
   exts.append( "WebAppDIRAC" )
+  print "exts"
+  print exts
   webCFG = CFG()
   for modName in reversed( exts ):
     try:
@@ -87,5 +90,3 @@ def getRawSchema():
       else:
         parentData.append( ( "app", opName, opVal ) )
   return schema
-
-

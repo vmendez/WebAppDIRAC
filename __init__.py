@@ -1,13 +1,13 @@
 # $HeadURL$
-__RCSID__ = "$Id$"
+__RCSID__ = "4bcbedb (2012-10-16 18:28:37 +0200) Adri Casajs <adria@ecm.ub.es>"
 
 import sys, os, platform
 
 # Define Version
 
-majorVersion = 0
-minorVersion = 0
-patchLevel = 0
+majorVersion = 1
+minorVersion = 6
+patchLevel = 25
 preVersion = 0
 
 version = "v%sr%s" % ( majorVersion, minorVersion )

@@ -1,18 +1,20 @@
-
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 import tempfile
-import json
-import ast
+
+from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC import gConfig, gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 
 class JobLaunchpadHandler(WebHandler):
 
   AUTH_PROPS = "authenticated"
 
+  def __init__(self, *args, **kwargs ):
+    super( JobLaunchpadHandler, self ).__init__( *args, **kwargs )
+    sessionData = self.getSessionData()
+    self.user = sessionData['user'].get( 'username', '' )
+    self.group = sessionData['user'].get( 'group', '' )
+    self.vo = getVOForGroup( self.group )
 
   def web_getProxyStatus(self):
     self.write(self.__getProxyStatus())
@@ -97,6 +99,7 @@ class JobLaunchpadHandler(WebHandler):
                      "Executable" :     [1, "/bin/ls"],
                      "Arguments" :      [1, "-ltrA"],
                      "OutputSandbox" :  [1, "std.out, std.err"],
+                     "JobGroup" :       [0, "Unknown"],
                      "InputData" :      [0, ""],
                      "OutputData" :     [0, ""],
                      "OutputSE" :       [0, "DIRAC-USER"],
@@ -110,7 +113,8 @@ class JobLaunchpadHandler(WebHandler):
                      "StdOutput" :      [0, "std.out"],
                      "Parameters" :     [0, "0"],
                      "ParameterStart" : [0, "0"],
-                     "ParameterStep" :  [0, "1"]}
+                     "ParameterStep" :  [0, "1"],
+                     "ParameterFactor": [0, "0"]}
 
     delimiter = gConfig.getValue("/Website/Launchpad/ListSeparator" , ',')
     options = self.__getOptionsFromCS(delimiter=delimiter)
@@ -136,7 +140,7 @@ class JobLaunchpadHandler(WebHandler):
 
 #    Reading of the predefined sets of launchpad parameters values
 
-    obj = Operations()
+    obj = Operations( vo = self.vo )
     predefinedSets = {}
 
     launchpadSections = obj.getSections("Launchpad")
@@ -265,6 +269,5 @@ class JobLaunchpadHandler(WebHandler):
     if clearFS:
       shutil.rmtree(storePath)
     self.finish(callback)
-
 
 

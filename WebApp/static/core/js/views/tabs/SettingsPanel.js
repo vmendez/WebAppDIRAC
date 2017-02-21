@@ -45,7 +45,7 @@ Ext.define('Ext.dirac.views.tabs.SettingsPanel', {
 
             }
 
-            userName = me.addUserName("Visitor (<a href='https://" + location.host.replace("8080", "8443") + location.pathname + "'>Secure connection</a>)");
+            userName = me.addUserName("Visitor (<a href='https://" + location.host.replace("8090", "9443") + location.pathname + "'>Secure connection</a>)");
 
           } else {
             userName = me.addUserName("Visitor");

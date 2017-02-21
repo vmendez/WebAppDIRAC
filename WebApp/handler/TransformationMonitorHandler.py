@@ -1,11 +1,8 @@
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, WOK, asyncGen
-from WebAppDIRAC.Lib.SessionData import SessionData
-from DIRAC import gConfig, S_OK, S_ERROR, gLogger
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List import sortList
 import json
-import ast
 
 class TransformationMonitorHandler( WebHandler ):
 
@@ -13,7 +10,7 @@ class TransformationMonitorHandler( WebHandler ):
 
   def index( self ):
     pass
-  
+
   @asyncGen
   def web_getSelectionData( self ):
     sData = self.getSessionData()
@@ -28,7 +25,7 @@ class TransformationMonitorHandler( WebHandler ):
   ####
       tsClient = TransformationClient()
       result = yield self.threadTask( tsClient.getDistinctAttributeValues, "Plugin", {} )
-      
+
       if result["OK"]:
         plugin = []
         if len( result["Value"] ) > 0:
@@ -97,14 +94,14 @@ class TransformationMonitorHandler( WebHandler ):
     sData = self.getSessionData()
     callback = {}
     user = sData["user"]["username"]
-    
+
     tsClient = TransformationClient()
-    
+
     if user == "Anonymous":
       callback = {"success":"false", "error":"You are not authorised"}
     else:
       result = self.__request()
-      
+
       result = yield self.threadTask( tsClient.getTransformationSummaryWeb, result, self.globalSort, self.pageNumber, self.numberOfJobs )
       if not result["OK"]:
         self.finish( json.dumps( {"success":"false", "error":result["Message"]} ) )
@@ -195,9 +192,9 @@ class TransformationMonitorHandler( WebHandler ):
       ids = [int( i ) for i in ids ]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-   
+
     tsClient = TransformationClient()
-   
+
     agentType = 'Manual'
     if cmd == 'clean':
       status = 'Cleaning'
@@ -213,16 +210,16 @@ class TransformationMonitorHandler( WebHandler ):
       status = 'Completed'
     else:
       self.finish( {"success":"false", "error": "Unknown action"} )
-      
+
     callback = []
-    
+
     for i in ids:
 
       try:
         id = int( i )
 
         result = yield self.threadTask( tsClient.setTransformationParameter, id, 'Status', status )
-        
+
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % ( i, cmd )
           result = yield self.threadTask( tsClient.setTransformationParameter, id, 'AgentType', agentType )
@@ -240,17 +237,16 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def __fileRetry( self, prodid, mode ):
     callback = {}
-    
+
     tsClient = TransformationClient()
-    
+
     if mode == "proc":
       res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':'Processed'} )
     elif mode == "not":
       res = tsClient.getTransformationFilesCount( prodid, "ErrorCount", {'Status':['Unused', 'Assigned', 'Failed']} )
     elif mode == "all":
       res = tsClient.getTransformationFilesCount( prodid, "ErrorCount" )
-    else:
-      return {"success":"false", "error":res["Message"]}
+
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -259,7 +255,7 @@ class TransformationMonitorHandler( WebHandler ):
       if total == 0:
         callback = {"success":"false", "error":"No files found"}
       else:
-        for status in sortList( res['Value'].keys() ):
+        for status in sorted( res['Value'].keys() ):
           count = res['Value'][status]
           percent = "%.1f" % ( ( count * 100.0 ) / total )
           resList.append( ( status, str( count ), percent ) )
@@ -279,7 +275,7 @@ class TransformationMonitorHandler( WebHandler ):
     else:
       result = res["Value"]
       back = []
-      for i in sortList( result.keys() ):
+      for i in sorted( result.keys() ):
         back.append( [i, result[i]] )
       callback = {"success":"true", "result":back}
     return callback
@@ -288,21 +284,21 @@ class TransformationMonitorHandler( WebHandler ):
   def __additionalParams( self, prodid ):
     callback = {}
     tsClient = TransformationClient()
-    
+
     res = tsClient.getAdditionalParameters( prodid )
     if not res['OK']:
       callback = {"success":"false", "error":res["Message"]}
     else:
       result = res["Value"]
       back = []
-      for i in sortList( result.keys() ):
+      for i in sorted( result.keys() ):
         back.append( [i, result[i]] )
       callback = {"success":"true", "result":back}
     return callback
 
   ################################################################################
   def __getLoggingInfo( self, id ):
-  
+
     callback = {}
     tsClient = TransformationClient()
     result = tsClient.getTransformationLogging( id )
@@ -347,7 +343,7 @@ class TransformationMonitorHandler( WebHandler ):
       if total == 0:
         callback = {"success":"false", "error":"No files found"}
       else:
-        for status in sortList( res['Value'].keys() ):
+        for status in sorted( res['Value'].keys() ):
           count = res['Value'][status]
           percent = "%.1f" % ( ( count * 100.0 ) / total )
           resList.append( ( status, str( count ), percent ) )
@@ -359,10 +355,10 @@ class TransformationMonitorHandler( WebHandler ):
   ################################################################################
   def __transformationDetail( self, prodid ):
     callback = {}
-    
+
     tsClient = TransformationClient()
     res = tsClient.getTransformationParameters( prodid, ['DetailedInfo'] )
-    
+
     if not res["OK"]:
       callback = {"success":"false", "error":res["Message"]}
     else:
@@ -376,16 +372,16 @@ class TransformationMonitorHandler( WebHandler ):
 
   ################################################################################
   def __extendTransformation( self, transid ):
-  
+
     try:
       tasks = int( self.request.arguments["tasks"][-1] )
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
 
     gLogger.info( "extend %s" % transid )
-    
+
     tsClient = TransformationClient()
-    
+
     gLogger.info( "extendTransformation(%s,%s)" % ( transid, tasks ) )
     res = tsClient.extendTransformation( transid, tasks )
     if res["OK"]:
@@ -407,10 +403,10 @@ class TransformationMonitorHandler( WebHandler ):
       status = self.request.arguments[ 'status' ][-1]
     except KeyError as excp:
       raise WErr( 400, "Missing %s" % excp )
-    
+
     tsClient = TransformationClient()
     result = yield self.threadTask( tsClient.getTransformationFilesSummaryWeb, {'TransformationID':id, 'Status':status}, [["FileID", "ASC"]], start, limit )
-    
+
     if not result['OK']:
       callback = {"success":"false", "error":result["Message"]}
     else:
@@ -429,9 +425,9 @@ class TransformationMonitorHandler( WebHandler ):
                   tmp[head[j]] = i[j]
                 callback.append( tmp )
               total = result["TotalRecords"]
+              timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
               if result.has_key( "Extras" ):
                 extra = result["Extras"]
-                timestamp = Time.dateTime().strftime( "%Y-%m-%d %H:%M [UTC]" )
                 callback = {"success":"true", "result":callback, "total":total, "extra":extra, "date":timestamp}
               else:
                 callback = {"success":"true", "result":callback, "total":total, "date":timestamp}
@@ -470,10 +466,10 @@ class TransformationMonitorHandler( WebHandler ):
       raise WErr( 400, "Missing %s" % excp )
 
     gLogger.info( "\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % ( transID, runID, site ) )
-    
+
     tsClient = TransformationClient()
     result = yield self.threadTask( tsClient.setTransformationRunsSite, transID, runID, site )
-    
+
     if result["OK"]:
       callback = {"success":"true", "result":"true"}
     else:

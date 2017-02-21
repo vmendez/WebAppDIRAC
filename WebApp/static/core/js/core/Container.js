@@ -126,11 +126,25 @@ Ext.define('Ext.dirac.core.Container', {
         } else {
           var win = window.open(url, "_blank");
           if (win == null || typeof(win) == 'undefined') {
-            Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "Get Log file" menu item again.');
+            Ext.dirac.system_info.msg("Error Notification", 'Please disable your pop-up blocker and click the "same component" again.');
           } else {
             win.focus();
           }
         }
+      },
+      oprPrepareAndShowWindowTpl : function(tplMarkup, tplData, sTitle) {
+        var me = this;
+
+        var oWindow = me.createChildWindow(sTitle, false, 700, 400);
+
+        var tpl = new Ext.Template(tplMarkup);
+
+        var oPanel = Ext.create('Ext.panel.Panel', {
+              html : tpl.apply(tplData),
+              autoScroll : true
+            });
+        oWindow.add(oPanel);
+        oWindow.show();
       }
 
     });

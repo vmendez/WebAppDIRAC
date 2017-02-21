@@ -678,7 +678,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
               mode : 'local',
               store : new Ext.data.ArrayStore({
                     fields : ['category'],
-                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"]]
+                    data : [["Status"], ["Site"], ["Minor Status"], ["Application Status"], ["Owner"], ["Owner Group"], ["Job Group"], ["Job Type"]]
                   }),
               triggerAction : 'all',
               value : "Status",
@@ -1313,7 +1313,6 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                         if (i == 0) {
                           data.push(row);
                         } else {
-                          row.pop();
                           data.push(row);
                         }
                       }
@@ -1327,7 +1326,7 @@ Ext.define('DIRAC.JobMonitor.classes.JobMonitor', {
                               sortable : true,
                               dataIndex : 'type'
                             }, {
-                              text : 'Opetation',
+                              text : 'Operation',
                               flex : 1,
                               sortable : true,
                               dataIndex : 'operation'

@@ -113,6 +113,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
       store : null,
       constructor : function(config) {
         var me = this;
+
         me.pagingToolbarItems = []; // make sure there is no element in the list
         me.pagingToolbarButtons = [];
         var idBtn = Ext.create('Ext.dirac.utils.DiracIdListButton', {
@@ -125,12 +126,16 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
           var nbOfButtons = 0;
           if ("Visible" in config.toolButtons && config.toolButtons.Visible.length > 0) {
             for (var i = 0; i < config.toolButtons.Visible.length; i++) {
-              me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
-                    text : config.toolButtons.Visible[i].text,
-                    handler : Ext.bind(config.toolButtons.Visible[i].handler, config.scope, config.toolButtons.Visible[i].arguments, false)
-                  });
-              if ("properties" in config.toolButtons.Visible[i]) {
-                Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
+              if (config.toolButtons.Visible[i].menu) {
+                me.pagingToolbarButtons[nbOfButtons] = config.toolButtons.Visible[i];
+              } else {
+                me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
+                      text : config.toolButtons.Visible[i].text,
+                      handler : Ext.bind(config.toolButtons.Visible[i].handler, config.scope, config.toolButtons.Visible[i].arguments, false)
+                    });
+                if ("properties" in config.toolButtons.Visible[i]) {
+                  Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Visible[i].properties);
+                }
               }
               nbOfButtons++;
             }
@@ -138,12 +143,16 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
           if ("Protected" in config.toolButtons && config.toolButtons.Protected.length > 0) {
             for (var i = 0; i < config.toolButtons.Protected.length; i++) {
               if (("properties" in GLOBAL.USER_CREDENTIALS) && (Ext.Array.indexOf(GLOBAL.USER_CREDENTIALS.properties, config.toolButtons.Protected[i].property) != -1)) {
-                me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
-                      text : config.toolButtons.Protected[i].text,
-                      handler : Ext.bind(config.toolButtons.Protected[i].handler, config.scope, config.toolButtons.Protected[i].arguments, false)
-                    });
-                if ("properties" in config.toolButtons.Protected[i]) {
-                  Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);
+                if (config.toolButtons.Protected[i].menu) {
+                  me.pagingToolbarButtons[nbOfButtons] = config.toolButtons.Protected[i];
+                } else {
+                  me.pagingToolbarButtons[nbOfButtons] = Ext.create('Ext.Button', {
+                        text : config.toolButtons.Protected[i].text,
+                        handler : Ext.bind(config.toolButtons.Protected[i].handler, config.scope, config.toolButtons.Protected[i].arguments, false)
+                      });
+                  if ("properties" in config.toolButtons.Protected[i]) {
+                    Ext.apply(me.pagingToolbarButtons[nbOfButtons], config.toolButtons.Protected[i].properties);
+                  }
                 }
               }
               nbOfButtons++;
@@ -162,7 +171,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
 
         me.pageSizeCombo = Ext.create("Ext.dirac.utils.DiracPageSizeCombo", {
               scope : config.scope,
-              value : ((config.value)?config.value : 25)
+              value : ((config.value) ? config.value : 25)
             });
 
         me.pageSizeCombo.on("change", function(combo, newValue, oldValue, eOpts) {
@@ -276,7 +285,7 @@ Ext.define('Ext.dirac.utils.DiracPagingToolbar', {
           if (toolbar.pageSize) {
 
             me.pageSizeCombo.suspendEvents(false);
-            //we have to set correctly the page size of the store
+            // we have to set correctly the page size of the store
             me.store.pageSize = toolbar.pageSize;
             me.pageSizeCombo.setValue(toolbar.pageSize);
             me.pageSizeCombo.resumeEvents();

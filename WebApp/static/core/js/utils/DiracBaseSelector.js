@@ -59,7 +59,7 @@
  */
 Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       extend : 'Ext.panel.Panel',
-      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton'],
+      requires : ['Ext.dirac.utils.DiracBoxSelect', 'Ext.dirac.utils.DiracTextField', 'Ext.dirac.utils.DiracNumericField', 'Ext.dirac.utils.DiracTimeSearchPanel', 'Ext.dirac.utils.DiracToolButton', 'Ext.form.field.Checkbox'],
       title : 'Selectors',
       region : 'west',
       floatable : false,
@@ -70,6 +70,10 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
       bodyPadding : 5,
       layout : 'anchor',
       autoScroll : true,
+      /**
+       * @property{Boolean} allowMultipleSelect It allows to use all the textfield in the selector. By defauld only one textfield is used. 
+       */
+      disableTextFields : true,
       /**
        * @cfg{Object}cmbSelectors It stores the combo box selectors.
        */
@@ -203,6 +207,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             if (oConfig.textFields[field]["type"] == "number" || oConfig.textFields[field]["type"] == "Number") {
               textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                     fieldLabel : oConfig.textFields[field]["name"],
+                    scope : me,
+                    type : oConfig.textFields[field]["type"]
+                  });
+            } else if (oConfig.textFields[field]["type"] == "Checkbox" || oConfig.textFields[field]["type"] == "checkbox") {
+              textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
+                    fieldLabel : oConfig.textFields[field]["fieldLabel"],
+                    name : oConfig.textFields[field]["name"],
                     scope : me,
                     type : oConfig.textFields[field]["type"]
                   });
@@ -557,6 +568,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
 
         for (var i in me.textFields) {
           var param = [];
+          if (me.textFields[i].type == "checkbox" || me.textFields[i].type == "Checkbox") {
+            var val = me.textFields[i].getValue();
+            extraParams[i] = Ext.JSON.encode([val]);
+            continue;
+          }
           if (me.textFields[i].getValue() != "") {
             if (me.textFields[i].getValue().search(",") != -1) {
               param = me.textFields[i].getValue().split(',');
@@ -638,7 +654,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
           }
         }
 
-        if (me.grid && me.grid.expandedGridPanel) {//delete the targetId
+        if (me.grid && me.grid.expandedGridPanel) {// delete the targetId
           me.grid.expandedGridPanel.destroy();
           delete me.grid.expandedGridPanel;
         }
@@ -736,6 +752,7 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
        * 
        * </pre>
        */
+
       addTextFieldSelector : function(data) {
         var me = this;
         var textFieldWidget = null;
@@ -744,6 +761,13 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
             textFieldWidget = Ext.create("Ext.dirac.utils.DiracNumericField", {
                   fieldLabel : data[field]["name"],
                   scope : me
+                });
+          } else if (data[field]["type"] == "Checkbox" || data[field]["type"] == "checkbox") {
+            textFieldWidget = Ext.create("Ext.form.field.Checkbox", {
+                  fieldLabel : data[field]["fieldLabel"],
+                  name : data[field]["name"],
+                  scope : me,
+                  type : data[field]["type"]
                 });
           } else {
             textFieldWidget = Ext.create("Ext.dirac.utils.DiracTextField", {
@@ -837,10 +861,11 @@ Ext.define('Ext.dirac.utils.DiracBaseSelector', {
         for (var cmb in me.cmbSelectors) {
           me.cmbSelectors[cmb].disable();
         }
-
-        for (var field in me.textFields) {
-          if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
-            me.textFields[field].disable();
+        if (me.disableTextFields) {
+          for (var field in me.textFields) {
+            if (me.textFields[field].canDisable && me.textFields[field].getFieldLabel() != notToDisable.getFieldLabel()) {
+              me.textFields[field].disable();
+            }
           }
         }
       },

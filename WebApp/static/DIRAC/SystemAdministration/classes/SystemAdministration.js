@@ -194,6 +194,10 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
         me.checkboxFunctionDefinition += 'for(var i=0;i<oElems.length;i++)oElems[i].checked = oChecked;';
         me.checkboxFunctionDefinition += '" class="sa-main-check-box"/>';
 
+        me.versionText = new Ext.form.TextField({
+              'emptyText' : "version"
+            });
+
         var oGridButtonsToolbar = new Ext.create('Ext.toolbar.Toolbar', {
               dock : 'top',
               items : [{
@@ -210,6 +214,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                       me.oprHostAction("revert", 2);
                     },
                     iconCls : "dirac-icon-revert",
+                    scope : me
+                  }, '-', me.versionText, {
+                    text : 'Update',
+                    handler : function() {
+                      me.oprHostAction("updat", 2);
+                    },
+                    iconCls : "dirac-icon-update",
                     scope : me
                   }, '-']
             });
@@ -518,6 +529,14 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     name : 'Timeup'
                   }, {
                     name : 'Type'
+                  }, {
+                    name : 'CPU'
+                  }, {
+                    name : 'MEM'
+                  }, {
+                    name : 'RSS'
+                  }, {
+                    name : 'VSZ'
                   }],
               remoteSort : true,
               pageSize : 10000,
@@ -576,13 +595,13 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     text : 'Start',
                     iconCls : "dirac-icon-start",
                     handler : function() {
-                      me.moduleObject.oprComponentAction("start", 2);
+                      me.oprComponentAction("start", 2);
                     }
                   }, {
                     text : 'Stop',
                     iconCls : "dirac-icon-stop",
                     handler : function() {
-                      me.moduleObject.oprComponentAction("stop", 2);
+                      me.oprComponentAction("stop", 2);
                     }
                   }]
             });
@@ -653,6 +672,32 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                     dataIndex : 'PID',
                     header : 'PID',
                     sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'CPU',
+                    header : 'CPU(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'MEM',
+                    header : 'MEM(%)',
+                    sortable : true
+                  }, {
+                    align : 'left',
+                    dataIndex : 'RSS',
+                    header : 'RSS(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
+                  }, {
+                    align : 'left',
+                    dataIndex : 'VSZ',
+                    header : 'VSZ(MB)',
+                    sortable : true,
+                    renderer : function(value, metaData, record, row, col, store, gridView) {
+                      return this.rendererMB(value);
+                    }
                   }],
               rendererChkBox : function(val) {
                 return '<input value="' + val + '" type="checkbox" class="checkrow" style="margin:0px;padding:0px"/>';
@@ -671,6 +716,9 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                   return '<b style="color:#00CC00">' + value + '</b>';
                 }
                 return value;
+              },
+              rendererMB : function(value) {
+                return value / 1024; // convert to MB
               },
               listeners : {
 
@@ -1124,8 +1172,7 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
 
       },
 
-      oprHostAction : function(sAction, sEventSource) {
-
+      __executeAction : function(sAction, sEventSource) {
         var me = this;
         var sHost = "";
 
@@ -1158,7 +1205,8 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
               url : GLOBAL.BASE_URL + 'SystemAdministration/hostAction',
               params : {
                 action : sAction,
-                host : sHost
+                host : sHost,
+                version : me.versionText.getValue()
               },
               scope : me,
               success : function(response) {
@@ -1183,13 +1231,26 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
-
       },
-
-      oprComponentAction : function(sAction, sEventSource) {
+      oprHostAction : function(sAction, sEventSource) {
 
         var me = this;
 
+        message = "Do you want to " + sAction + "?";
+        Ext.MessageBox.confirm('Confirm', message, function(button) {
+
+              var me = this;
+              if (button === 'yes') {
+                me.__executeAction(sAction, sEventSource);
+
+              }
+
+            }, me);
+
+      },
+      
+      __executeComponentAction : function(sAction, sEventSource) {
+        var me = this;
         var oParams = {
           action : sAction
         }
@@ -1252,7 +1313,22 @@ Ext.define('DIRAC.SystemAdministration.classes.SystemAdministration', {
                 GLOBAL.APP.CF.showAjaxErrorMessage(response);
               }
             });
+      },
+      oprComponentAction : function(sAction, sEventSource) {
 
+        var me = this;
+        
+        message = "Do you want to " + sAction + "?";
+        Ext.MessageBox.confirm('Confirm', message, function(button) {
+
+              var me = this;
+              if (button === 'yes') {
+                me.__executeComponentAction(sAction, sEventSource);
+
+              }
+
+            }, me);
+        
       },
 
       createBottomGridToolbar : function(oGrid) {

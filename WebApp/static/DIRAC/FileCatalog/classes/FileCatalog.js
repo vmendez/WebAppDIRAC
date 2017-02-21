@@ -1,7 +1,11 @@
 Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
       extend : 'Ext.dirac.core.Module',
-      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu", "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea", "Ext.form.field.Checkbox", "Ext.form.FieldSet", "Ext.Button", "Ext.util.*",
-          "Ext.toolbar.Toolbar", "Ext.data.Record", "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea', 'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping', 'Ext.tree.Panel', 'Ext.data.TreeStore'],
+      requires : ['Ext.util.*', 'Ext.panel.Panel', "Ext.form.field.Text", "Ext.button.Button", "Ext.menu.Menu",
+                  "Ext.form.field.ComboBox", "Ext.layout.*", "Ext.form.field.TextArea", "Ext.form.field.Checkbox",
+                  "Ext.form.FieldSet", "Ext.Button", "Ext.util.*", "Ext.toolbar.Toolbar", "Ext.data.Record",
+                  "Ext.tree.Panel", "Ext.data.TreeStore", "Ext.data.NodeInterface", 'Ext.form.field.TextArea',
+                  'Ext.Array', 'Ext.grid.Panel', 'Ext.form.field.Text', 'Ext.grid.feature.Grouping',
+                  'Ext.tree.Panel', 'Ext.data.TreeStore'],
 
       loadState : function(oData) {
 
@@ -479,7 +483,7 @@ Ext.define('DIRAC.FileCatalog.classes.FileCatalog', {
             });
 
         me.pagingToolbar.btnSaveFile = new Ext.Button({
-              tooltip : 'Save',
+              tooltip : 'Save Metadata',
               iconCls : "dirac-icon-save",
               handler : function() {
                 me.__getMetadataFile();
